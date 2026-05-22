@@ -28,8 +28,8 @@
   --color-neutral-100: #F2F3F4;
   --color-neutral-000: #FFFFFF;
 
-  --font-display: var(--font-playfair);
-  --font-sans: var(--font-source-sans);
+  --font-display: var(--font-poppins);
+  --font-sans: var(--font-inter);
 
   --text-2xl: 2.5rem;
   --text-xl: 2rem;

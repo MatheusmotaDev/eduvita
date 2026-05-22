@@ -1,65 +1,104 @@
-import Image from "next/image";
+import { Sidebar } from "@/features/dashboard/components/Sidebar";
+import { Header } from "@/features/dashboard/components/Header";
+import { KPICard } from "@/features/dashboard/components/KPICard";
+import { Droplets, HeartHandshake, Leaf, Utensils } from "lucide-react";
+import { Button } from "@/shared/ui/Button";
+import { Download } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="flex h-screen w-full bg-neutral-100">
+      <Sidebar />
+      
+      <div className="flex flex-1 flex-col pl-[280px]">
+        <Header />
+        
+        <main className="flex-1 overflow-auto p-8">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="font-display text-xl font-bold text-neutral-900">Dashboard Nacional</h1>
+              <p className="text-base text-neutral-500">Visão consolidada da infraestrutura e bem-estar nas escolas públicas</p>
+            </div>
+            <Button variant="primary">
+              <Download className="mr-2 h-5 w-5" />
+              Exportar Relatório
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <KPICard 
+              title="Escolas sem Água"
+              value="3.492"
+              trend="down"
+              trendValue="↓ 12% vs ano ant."
+              context="Escolas sem acesso à água potável"
+              icon={Droplets}
+              status="critical"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            
+            <KPICard 
+              title="Apoio Psicológico"
+              value="15,7%"
+              trend="up"
+              trendValue="↑ 2,1% vs ano ant."
+              context="Escolas com psicólogo no quadro"
+              icon={HeartHandshake}
+              status="warning"
+            />
+            
+            <KPICard 
+              title="Segurança Alimentar"
+              value="82,4%"
+              trend="up"
+              trendValue="↑ 5% vs ano ant."
+              context="Com cozinha e refeitório"
+              icon={Utensils}
+              status="success"
+            />
+            
+            <KPICard 
+              title="Ambientes Saudáveis"
+              value="41,2%"
+              trend="neutral"
+              trendValue="0% vs ano ant."
+              context="Com área verde ou plantio"
+              icon={Leaf}
+              status="neutral"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 rounded-xl bg-white p-6 shadow-sm border border-neutral-200 min-h-[400px] flex items-center justify-center">
+              <div className="text-center">
+                <MapIconPlaceholder />
+                <p className="text-neutral-500 font-semibold mt-4">Área reservada para o Mapa de Calor (Etapa 5)</p>
+              </div>
+            </div>
+            <div className="rounded-xl bg-white p-6 shadow-sm border border-neutral-200 min-h-[400px] flex items-center justify-center">
+              <div className="text-center">
+                <TrophyIconPlaceholder />
+                <p className="text-neutral-500 font-semibold mt-4">Rankings de Municípios (Etapa 5)</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
+}
+
+// Ícones temporários para o Mock
+function MapIconPlaceholder() {
+  return (
+    <svg className="mx-auto h-12 w-12 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    </svg>
+  )
+}
+function TrophyIconPlaceholder() {
+  return (
+    <svg className="mx-auto h-12 w-12 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+    </svg>
+  )
 }
