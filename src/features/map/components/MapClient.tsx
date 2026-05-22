@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from 'mapbox-gl';
 import { CityVulnerability, getCityVulnerabilities } from '@/features/rankings/services/ivebService';
 import { Loader2, AlertTriangle, Building2, MapPin } from 'lucide-react';
 import { Badge } from '@/shared/ui/Badge';
@@ -52,7 +53,7 @@ export function MapClient() {
               longitude={city.lng}
               latitude={city.lat}
               anchor="center"
-              onClick={(e: any) => {
+              onClick={(e) => {
                 e.originalEvent.stopPropagation();
                 setPopupInfo(city);
               }}

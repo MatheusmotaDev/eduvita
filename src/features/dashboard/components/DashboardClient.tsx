@@ -6,7 +6,7 @@ import { HeartHandshake, Leaf, Utensils, Accessibility } from "lucide-react";
 import { SchoolDataGrid } from "./SchoolDataGrid";
 import { SchoolDrawer } from "@/features/schools/components/SchoolDrawer";
 
-export function DashboardClient({ metrics }: { metrics: any }) {
+export function DashboardClient({ metrics }: { metrics: Record<string, number> }) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
 

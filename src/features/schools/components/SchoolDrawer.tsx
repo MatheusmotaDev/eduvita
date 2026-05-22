@@ -10,7 +10,7 @@ interface SchoolDrawerProps {
 }
 
 export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
-  const [school, setSchool] = useState<any>(null);
+  const [school, setSchool] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
               </div>
 
               {(() => {
-                const safeGet = (rel: any) => Array.isArray(rel) ? rel[0] : rel;
+                const safeGet = <T,>(rel: T | T[]): T => Array.isArray(rel) ? rel[0] : rel;
                 const alim = safeGet(school.infraestrutura_alimentacao);
                 const bemEstar = safeGet(school.infraestrutura_bem_estar);
                 const ambiente = safeGet(school.ambiente_escolar);

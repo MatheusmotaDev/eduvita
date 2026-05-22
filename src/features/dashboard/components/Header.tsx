@@ -7,7 +7,7 @@ import { SchoolDrawer } from "@/features/schools/components/SchoolDrawer";
 
 export function Header() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
 

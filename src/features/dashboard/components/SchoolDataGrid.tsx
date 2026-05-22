@@ -5,14 +5,14 @@ import { Button } from "@/shared/ui/Button";
 import { MapPin, ArrowRight, Loader2, Filter } from "lucide-react";
 
 export function SchoolDataGrid({ filterType, onSelectSchool }: { filterType: string | null, onSelectSchool: (id: number) => void }) {
-  const [schools, setSchools] = useState<any[]>([]);
+  const [schools, setSchools] = useState<Record<string, any>[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   // Filtros de Localização
-  const [states, setStates] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
+  const [states, setStates] = useState<{co_uf: number; sg_uf: string; no_uf: string}[]>([]);
+  const [cities, setCities] = useState<{co_municipio: number; no_municipio: string}[]>([]);
   const [selectedState, setSelectedState] = useState<number | null>(null);
   const [selectedCity, setSelectedCity] = useState<number | null>(null);
 

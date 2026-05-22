@@ -65,7 +65,7 @@ export async function getCityVulnerabilities(): Promise<CityVulnerability[]> {
       const co_municipio = cityData[0].co_municipio;
       
       // 2. Buscar infraestrutura basica das escolas dessa cidade
-      let allSchools: any[] = [];
+      let allSchools: Record<string, unknown>[] = [];
       let hasMore = true;
       let page = 0;
       const pageSize = 1000;
