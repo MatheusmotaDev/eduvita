@@ -1,28 +1,57 @@
+import csv
+import json
+import urllib.request
+import urllib.parse
 import os
-import pandas as pd
-from dotenv import load_dotenv
-from supabase import create_client, Client
 
-# Carrega variáveis de ambiente do projeto Next.js
-load_dotenv(".env.local")
+# 1. Leitor manual do .env.local para não precisarmos do 'python-dotenv'
+def load_env():
+    env = {}
+    try:
+        with open('.env.local', 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    key, val = line.split('=', 1)
+                    env[key.strip()] = val.strip()
+    except Exception as e:
+        print("Erro ao ler .env.local:", e)
+    return env
 
-url: str = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
-key: str = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+env = load_env()
+url = env.get("NEXT_PUBLIC_SUPABASE_URL")
+key = env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
 if not url or not key:
     raise Exception("Chaves do Supabase não encontradas no .env.local")
 
-supabase: Client = create_client(url, key)
+# 2. Cliente HTTP manual para o Supabase REST API, para não precisarmos da biblioteca 'supabase'
+def upsert_supabase(table, data_list):
+    if not data_list: return
+    
+    endpoint = f"{url}/rest/v1/{table}"
+    headers = {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+    }
+    
+    req = urllib.request.Request(endpoint, data=json.dumps(data_list).encode('utf-8'), headers=headers, method='POST')
+    try:
+        with urllib.request.urlopen(req) as response:
+            pass # Sucesso
+    except urllib.error.HTTPError as e:
+        print(f"Erro ao inserir na tabela {table}: {e.read().decode('utf-8')}")
 
-CSV_PATH = "INEP/Tabela_Escola_2025.csv"
-
+# 3. Funções de limpeza
 def clean_bool(val):
-    if pd.isna(val) or val == '' or val == ' ' or val == 'NaN':
+    if not val or val.strip() == '' or val.strip() == 'NaN':
         return False
-    return str(val).strip() == '1'
+    return val.strip() == '1'
 
 def clean_int(val):
-    if pd.isna(val) or val == '' or val == ' ':
+    if not val or val.strip() == '':
         return 0
     try:
         return int(float(val))
@@ -30,177 +59,157 @@ def clean_int(val):
         return 0
 
 def run_etl(limit=None):
-    print(f"Lendo CSV {'com limite de ' + str(limit) + ' linhas' if limit else 'completo'}...")
+    csv_path = "INEP/Tabela_Escola_2025.csv"
+    print(f"Iniciando ETL (Limite: {limit if limit else 'Sem limite'})...")
+    print("Usando 100% bibliotecas nativas do Python 3.14 (Sem dependências Pip)!")
     
-    # Lendo apenas as colunas necessárias para economizar memória e acelerar o processo
-    cols = [
-        "CO_REGIAO", "NO_REGIAO",
-        "CO_UF", "NO_UF", "SG_UF",
-        "CO_MUNICIPIO", "NO_MUNICIPIO",
-        "TP_LOCALIZACAO_DIFERENCIADA",
-        "CO_ENTIDADE", "NO_ENTIDADE", "DS_ENDERECO", "TP_DEPENDENCIA", "TP_LOCALIZACAO", "TP_SITUACAO_FUNCIONAMENTO",
-        "IN_ALIMENTACAO", "IN_REFEITORIO", "IN_COZINHA", "IN_DESPENSA",
-        "IN_BANHEIRO_PNE", "IN_BANHEIRO_CHUVEIRO", "IN_SALA_ATENDIMENTO_ESPECIAL", "IN_DORMITORIO_ALUNO",
-        "QT_PROF_SAUDE", "QT_PROF_FONAUDIOLOGO", "QT_PROF_NUTRICIONISTA", "QT_PROF_PSICOLOGO", "QT_PROF_ASSIST_SOCIAL", "QT_PROF_TRAD_LIBRAS",
-        "IN_MATERIAL_PED_CIENTIFICO", "IN_MATERIAL_PED_INDIGENA", "IN_MATERIAL_PED_QUILOMBOLA", "IN_MATERIAL_PED_EDU_ESP", "IN_MATERIAL_PED_BIL_SURDOS",
-        "IN_AREA_VERDE", "IN_AREA_PLANTIO", "IN_PATIO_COBERTO", "IN_PARQUE_INFANTIL", "IN_QUADRA_ESPORTES"
-    ]
-    
-    df = pd.read_csv(CSV_PATH, sep=";", encoding="iso-8859-1", usecols=cols, nrows=limit, dtype=str)
-    
-    # Filtra apenas escolas ativas (TP_SITUACAO_FUNCIONAMENTO == 1)
-    df = df[df['TP_SITUACAO_FUNCIONAMENTO'] == '1']
-    df.fillna('', inplace=True)
-    
-    print(f"Total de escolas ativas prontas para processamento: {len(df)}")
-    
-    # 1. Inserir Regiões Únicas
-    print("Processando Regiões...")
-    regioes = df[['CO_REGIAO', 'NO_REGIAO']].drop_duplicates()
-    for _, row in regioes.iterrows():
-        if row['CO_REGIAO']:
-            try:
-                supabase.table('regiao').upsert({
-                    'co_regiao': int(row['CO_REGIAO']),
-                    'no_regiao': row['NO_REGIAO']
-                }).execute()
-            except Exception: pass
-                
-    # 2. Inserir Estados Únicos
-    print("Processando Estados...")
-    estados = df[['CO_UF', 'NO_UF', 'SG_UF', 'CO_REGIAO']].drop_duplicates()
-    for _, row in estados.iterrows():
-        if row['CO_UF']:
-            try:
-                supabase.table('estado').upsert({
-                    'co_uf': int(row['CO_UF']),
-                    'no_uf': row['NO_UF'],
-                    'sg_uf': row['SG_UF'],
-                    'co_regiao': int(row['CO_REGIAO'])
-                }).execute()
-            except Exception: pass
-
-    # 3. Inserir Municípios Únicos
-    print("Processando Municípios...")
-    municipios = df[['CO_MUNICIPIO', 'NO_MUNICIPIO', 'CO_UF']].drop_duplicates()
-    for _, row in municipios.iterrows():
-        if row['CO_MUNICIPIO']:
-            try:
-                supabase.table('municipio').upsert({
-                    'co_municipio': int(row['CO_MUNICIPIO']),
-                    'no_municipio': row['NO_MUNICIPIO'][:100],
-                    'co_uf': int(row['CO_UF'])
-                }).execute()
-            except Exception: pass
-                
-    # 4. Inserir Localização Diferenciada Única
-    print("Processando Localizações Diferenciadas...")
-    locais = df[['TP_LOCALIZACAO_DIFERENCIADA']].drop_duplicates()
-    for _, row in locais.iterrows():
-        if row['TP_LOCALIZACAO_DIFERENCIADA']:
-            try:
-                supabase.table('localizacao_diferenciada').upsert({
-                    'tp_localizacao_diferenciada': int(row['TP_LOCALIZACAO_DIFERENCIADA']),
-                    'ds_descricao': f"Tipo {row['TP_LOCALIZACAO_DIFERENCIADA']}"
-                }).execute()
-            except Exception: pass
-                
-    # 5. Inserir Escolas e Sub-Tabelas Analíticas
-    print("Processando Escolas e dependências (em Lotes)...")
-    batch_size = 50
+    regioes_vistas = set()
+    estados_vistos = set()
+    municipios_vistos = set()
+    locais_vistos = set()
     
     escola_batch, alimentacao_batch, bem_estar_batch = [], [], []
     saude_batch, material_batch, ambiente_batch = [], [], []
+    batch_size = 50
+    count = 0
     
-    for i, row in df.iterrows():
-        try:
-            co_entidade = int(row['CO_ENTIDADE'])
+    try:
+        with open(csv_path, 'r', encoding='iso-8859-1') as f:
+            reader = csv.DictReader(f, delimiter=';')
+            capitais = {
+                'SÃO PAULO', 'RIO DE JANEIRO', 'BELO HORIZONTE', 'BRASÍLIA', 'SALVADOR', 
+                'FORTALEZA', 'MANAUS', 'CURITIBA', 'RECIFE', 'PORTO ALEGRE', 'BELÉM', 
+                'GOIÂNIA', 'SÃO LUÍS', 'MACEIÓ', 'NATAL', 'JOÃO PESSOA', 'TERESINA', 
+                'ARACAJU', 'VITÓRIA', 'FLORIANÓPOLIS', 'CUIABÁ', 'CAMPO GRANDE', 
+                'PORTO VELHO', 'MACAPÁ', 'RIO BRANCO', 'BOA VISTA', 'PALMAS'
+            }
             
-            escola_batch.append({
-                'co_entidade': co_entidade,
-                'no_entidade': row['NO_ENTIDADE'][:200],
-                'ds_endereco': row['DS_ENDERECO'][:200] if row['DS_ENDERECO'] else 'NÃO INFORMADO',
-                'tp_dependencia': int(row['TP_DEPENDENCIA']) if row['TP_DEPENDENCIA'] else 0,
-                'tp_localizacao': int(row['TP_LOCALIZACAO']) if row['TP_LOCALIZACAO'] else 0,
-                'tp_situacao_funcionamento': int(row['TP_SITUACAO_FUNCIONAMENTO']),
-                'co_municipio': int(row['CO_MUNICIPIO']) if row['CO_MUNICIPIO'] else 0,
-                'tp_localizacao_diferenciada': int(row['TP_LOCALIZACAO_DIFERENCIADA']) if row['TP_LOCALIZACAO_DIFERENCIADA'] else 0
-            })
-            
-            alimentacao_batch.append({
-                'co_entidade': co_entidade,
-                'in_alimentacao': clean_bool(row['IN_ALIMENTACAO']),
-                'in_refeitorio': clean_bool(row['IN_REFEITORIO']),
-                'in_cozinha': clean_bool(row['IN_COZINHA']),
-                'in_despensa': clean_bool(row['IN_DESPENSA'])
-            })
-            
-            bem_estar_batch.append({
-                'co_entidade': co_entidade,
-                'in_banheiro_pne': clean_bool(row['IN_BANHEIRO_PNE']),
-                'in_banheiro_chuveiro': clean_bool(row['IN_BANHEIRO_CHUVEIRO']),
-                'in_sala_atendimento_especial': clean_bool(row['IN_SALA_ATENDIMENTO_ESPECIAL']),
-                'in_dormitorio_aluno': clean_bool(row['IN_DORMITORIO_ALUNO'])
-            })
-            
-            saude_batch.append({
-                'co_entidade': co_entidade,
-                'qt_prof_saude': clean_int(row['QT_PROF_SAUDE']),
-                'qt_prof_fonaudiologo': clean_int(row['QT_PROF_FONAUDIOLOGO']),
-                'qt_prof_nutricionista': clean_int(row['QT_PROF_NUTRICIONISTA']),
-                'qt_prof_psicologo': clean_int(row['QT_PROF_PSICOLOGO']),
-                'qt_prof_assist_social': clean_int(row['QT_PROF_ASSIST_SOCIAL']),
-                'qt_prof_trad_libras': clean_int(row['QT_PROF_TRAD_LIBRAS'])
-            })
-            
-            material_batch.append({
-                'co_entidade': co_entidade,
-                'in_material_ped_cientifico': clean_bool(row['IN_MATERIAL_PED_CIENTIFICO']),
-                'in_material_ped_indigena': clean_bool(row['IN_MATERIAL_PED_INDIGENA']),
-                'in_material_ped_quilombola': clean_bool(row['IN_MATERIAL_PED_QUILOMBOLA']),
-                'in_material_ped_edu_esp': clean_bool(row['IN_MATERIAL_PED_EDU_ESP']),
-                'in_material_ped_bil_surdos': clean_bool(row['IN_MATERIAL_PED_BIL_SURDOS'])
-            })
-            
-            ambiente_batch.append({
-                'co_entidade': co_entidade,
-                'in_area_verde': clean_bool(row['IN_AREA_VERDE']),
-                'in_area_plantio': clean_bool(row['IN_AREA_PLANTIO']),
-                'in_patio_coberto': clean_bool(row['IN_PATIO_COBERTO']),
-                'in_parque_infantil': clean_bool(row['IN_PARQUE_INFANTIL']),
-                'in_quadra_esportes': clean_bool(row['IN_QUADRA_ESPORTES'])
-            })
-            
-            if len(escola_batch) >= batch_size:
-                supabase.table('escola').upsert(escola_batch).execute()
-                supabase.table('infraestrutura_alimentacao').upsert(alimentacao_batch).execute()
-                supabase.table('infraestrutura_bem_estar').upsert(bem_estar_batch).execute()
-                supabase.table('profissionais_saude').upsert(saude_batch).execute()
-                supabase.table('material_pedagogico').upsert(material_batch).execute()
-                supabase.table('ambiente_escolar').upsert(ambiente_batch).execute()
+            for row in reader:
+                # Filtrar apenas escolas ativas localizadas nas capitais do Brasil
+                if row.get('TP_SITUACAO_FUNCIONAMENTO') != '1' or row.get('NO_MUNICIPIO', '').strip().upper() not in capitais:
+                    continue
+                    
+                co_regiao = row.get('CO_REGIAO')
+                if co_regiao and co_regiao not in regioes_vistas:
+                    regioes_vistas.add(co_regiao)
+                    upsert_supabase('regiao', [{'co_regiao': int(co_regiao), 'no_regiao': row.get('NO_REGIAO')}])
+                    
+                co_uf = row.get('CO_UF')
+                if co_uf and co_uf not in estados_vistos:
+                    estados_vistos.add(co_uf)
+                    upsert_supabase('estado', [{
+                        'co_uf': int(co_uf), 
+                        'no_uf': row.get('NO_UF'), 
+                        'sg_uf': row.get('SG_UF'), 
+                        'co_regiao': int(co_regiao) if co_regiao else 0
+                    }])
+                    
+                co_municipio = row.get('CO_MUNICIPIO')
+                if co_municipio and co_municipio not in municipios_vistos:
+                    municipios_vistos.add(co_municipio)
+                    upsert_supabase('municipio', [{
+                        'co_municipio': int(co_municipio),
+                        'no_municipio': row.get('NO_MUNICIPIO', '')[:100],
+                        'co_uf': int(co_uf) if co_uf else 0
+                    }])
+                    
+                tp_loc = row.get('TP_LOCALIZACAO_DIFERENCIADA')
+                if tp_loc and tp_loc not in locais_vistos:
+                    locais_vistos.add(tp_loc)
+                    upsert_supabase('localizacao_diferenciada', [{
+                        'tp_localizacao_diferenciada': int(tp_loc),
+                        'ds_descricao': f"Tipo {tp_loc}"
+                    }])
+                    
+                co_entidade = int(row.get('CO_ENTIDADE', 0))
+                if not co_entidade: continue
                 
-                escola_batch.clear(); alimentacao_batch.clear(); bem_estar_batch.clear()
-                saude_batch.clear(); material_batch.clear(); ambiente_batch.clear()
+                escola_batch.append({
+                    'co_entidade': co_entidade,
+                    'no_entidade': row.get('NO_ENTIDADE', '')[:200],
+                    'ds_endereco': row.get('DS_ENDERECO', '')[:200] or 'NÃO INFORMADO',
+                    'tp_dependencia': clean_int(row.get('TP_DEPENDENCIA')),
+                    'tp_localizacao': clean_int(row.get('TP_LOCALIZACAO')),
+                    'tp_situacao_funcionamento': clean_int(row.get('TP_SITUACAO_FUNCIONAMENTO')),
+                    'co_municipio': clean_int(row.get('CO_MUNICIPIO')),
+                    'tp_localizacao_diferenciada': clean_int(row.get('TP_LOCALIZACAO_DIFERENCIADA'))
+                })
                 
-        except Exception as e:
-            print(f"Erro na linha {i}: {e}")
-            continue
+                alimentacao_batch.append({
+                    'co_entidade': co_entidade,
+                    'in_alimentacao': clean_bool(row.get('IN_ALIMENTACAO')),
+                    'in_refeitorio': clean_bool(row.get('IN_REFEITORIO')),
+                    'in_cozinha': clean_bool(row.get('IN_COZINHA')),
+                    'in_despensa': clean_bool(row.get('IN_DESPENSA'))
+                })
+                
+                bem_estar_batch.append({
+                    'co_entidade': co_entidade,
+                    'in_banheiro_pne': clean_bool(row.get('IN_BANHEIRO_PNE')),
+                    'in_banheiro_chuveiro': clean_bool(row.get('IN_BANHEIRO_CHUVEIRO')),
+                    'in_sala_atendimento_especial': clean_bool(row.get('IN_SALA_ATENDIMENTO_ESPECIAL')),
+                    'in_dormitorio_aluno': clean_bool(row.get('IN_DORMITORIO_ALUNO'))
+                })
+                
+                saude_batch.append({
+                    'co_entidade': co_entidade,
+                    'qt_prof_saude': clean_int(row.get('QT_PROF_SAUDE')),
+                    'qt_prof_fonaudiologo': clean_int(row.get('QT_PROF_FONAUDIOLOGO')),
+                    'qt_prof_nutricionista': clean_int(row.get('QT_PROF_NUTRICIONISTA')),
+                    'qt_prof_psicologo': clean_int(row.get('QT_PROF_PSICOLOGO')),
+                    'qt_prof_assist_social': clean_int(row.get('QT_PROF_ASSIST_SOCIAL')),
+                    'qt_prof_trad_libras': clean_int(row.get('QT_PROF_TRAD_LIBRAS'))
+                })
+                
+                material_batch.append({
+                    'co_entidade': co_entidade,
+                    'in_material_ped_cientifico': clean_bool(row.get('IN_MATERIAL_PED_CIENTIFICO')),
+                    'in_material_ped_indigena': clean_bool(row.get('IN_MATERIAL_PED_INDIGENA')),
+                    'in_material_ped_quilombola': clean_bool(row.get('IN_MATERIAL_PED_QUILOMBOLA')),
+                    'in_material_ped_edu_esp': clean_bool(row.get('IN_MATERIAL_PED_EDU_ESP')),
+                    'in_material_ped_bil_surdos': clean_bool(row.get('IN_MATERIAL_PED_BIL_SURDOS'))
+                })
+                
+                ambiente_batch.append({
+                    'co_entidade': co_entidade,
+                    'in_area_verde': clean_bool(row.get('IN_AREA_VERDE')),
+                    'in_area_plantio': clean_bool(row.get('IN_AREA_PLANTIO')),
+                    'in_patio_coberto': clean_bool(row.get('IN_PATIO_COBERTO')),
+                    'in_parque_infantil': clean_bool(row.get('IN_PARQUE_INFANTIL')),
+                    'in_quadra_esportes': clean_bool(row.get('IN_QUADRA_ESPORTES'))
+                })
+                
+                count += 1
+                if len(escola_batch) >= batch_size:
+                    upsert_supabase('escola', escola_batch)
+                    upsert_supabase('infraestrutura_alimentacao', alimentacao_batch)
+                    upsert_supabase('infraestrutura_bem_estar', bem_estar_batch)
+                    upsert_supabase('profissionais_saude', saude_batch)
+                    upsert_supabase('material_pedagogico', material_batch)
+                    upsert_supabase('ambiente_escolar', ambiente_batch)
+                    
+                    escola_batch.clear(); alimentacao_batch.clear(); bem_estar_batch.clear()
+                    saude_batch.clear(); material_batch.clear(); ambiente_batch.clear()
+                    print(f"[{count}] Escolas inseridas via API REST nativa...")
+                    
+                if limit and count >= limit:
+                    break
+                    
+        if len(escola_batch) > 0:
+            upsert_supabase('escola', escola_batch)
+            upsert_supabase('infraestrutura_alimentacao', alimentacao_batch)
+            upsert_supabase('infraestrutura_bem_estar', bem_estar_batch)
+            upsert_supabase('profissionais_saude', saude_batch)
+            upsert_supabase('material_pedagogico', material_batch)
+            upsert_supabase('ambiente_escolar', ambiente_batch)
+            print(f"[{count}] Escolas inseridas via API REST nativa...")
+            
+    except FileNotFoundError:
+        print(f"Erro: O arquivo {csv_path} não foi encontrado. Verifique se a pasta INEP existe.")
+        return
 
-    if len(escola_batch) > 0:
-        try:
-            supabase.table('escola').upsert(escola_batch).execute()
-            supabase.table('infraestrutura_alimentacao').upsert(alimentacao_batch).execute()
-            supabase.table('infraestrutura_bem_estar').upsert(bem_estar_batch).execute()
-            supabase.table('profissionais_saude').upsert(saude_batch).execute()
-            supabase.table('material_pedagogico').upsert(material_batch).execute()
-            supabase.table('ambiente_escolar').upsert(ambiente_batch).execute()
-        except Exception as e:
-            print(f"Erro no batch final: {e}")
-
-    print("✅ Carga finalizada com sucesso!")
+    print("Carga finalizada com sucesso! O banco de dados agora tem dados reais.")
 
 if __name__ == "__main__":
-    # IMPORTANTE: Por estarmos desenvolvendo o MVP, o limite default foi setado em 1000 
-    # para validar o fluxo rapidamente sem estourar quotas da API do Supabase.
-    # Quando for a hora da verdade, mude limit para None.
-    run_etl(limit=1000)
+    # Expandindo o limite para 15000 para garantir que o script consiga varrer até o final do CSV (Sudeste e Sul)
+    run_etl(limit=15000)
