@@ -1,11 +1,11 @@
 "use client"
-import { Search, Bell, User, Loader2 } from "lucide-react";
+import { Search, Bell, User, Loader2, Menu } from "lucide-react";
 import { Input } from "@/shared/ui/Input";
 import { useState, useEffect } from "react";
 import { searchSchools } from "@/features/schools/services/schoolService";
 import { SchoolDrawer } from "@/features/schools/components/SchoolDrawer";
 
-export function Header() {
+export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,9 +28,15 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-neutral-300 bg-white px-8 shadow-sm">
-        <div className="flex items-center">
-          <span className="text-sm font-semibold text-neutral-500">
+      <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-neutral-300 bg-white px-4 lg:px-8 shadow-sm gap-4">
+        <div className="flex items-center gap-3">
+          <button 
+            className="lg:hidden p-2 -ml-2 text-neutral-600 hover:text-neutral-900 focus:outline-none"
+            onClick={onMenuClick}
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+          <span className="hidden md:inline text-sm font-semibold text-neutral-500">
             Visão Geral / <span className="text-neutral-900">Dashboard Nacional</span>
           </span>
         </div>

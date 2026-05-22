@@ -109,25 +109,27 @@ export function SchoolDataGrid({ filterType, onSelectSchool }: { filterType: str
            <p>Nenhuma escola encontrada para este filtro.</p>
          </div>
        ) : (
-         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-           {schools.map(school => (
-             <button 
-                key={school.co_entidade} 
-                onClick={() => onSelectSchool(school.co_entidade)}
-                className="flex items-center justify-between text-left p-4 border border-neutral-200 rounded-lg hover:border-primary-400 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-               <div>
-                 <h3 className="font-semibold text-neutral-900 truncate max-w-[200px] sm:max-w-[280px]" title={school.no_entidade}>
-                   {school.no_entidade}
-                 </h3>
-                 <p className="text-xs text-neutral-500 mt-1 flex items-center">
-                   <MapPin className="h-3 w-3 mr-1" />
-                   {school.municipio?.no_municipio} - {school.municipio?.estado?.sg_uf}
-                 </p>
-               </div>
-               <ArrowRight className="h-5 w-5 text-neutral-300" />
-             </button>
-           ))}
+         <div className="overflow-x-auto">
+           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+             {schools.map(school => (
+               <button 
+                  key={school.co_entidade} 
+                  onClick={() => onSelectSchool(school.co_entidade)}
+                  className="flex items-center justify-between text-left p-4 border border-neutral-200 rounded-lg hover:border-primary-400 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                 <div>
+                   <h3 className="font-semibold text-neutral-900 truncate max-w-[200px] sm:max-w-[280px]" title={school.no_entidade}>
+                     {school.no_entidade}
+                   </h3>
+                   <p className="text-xs text-neutral-500 mt-1 flex items-center">
+                     <MapPin className="h-3 w-3 mr-1" />
+                     {school.municipio?.no_municipio} - {school.municipio?.estado?.sg_uf}
+                   </p>
+                 </div>
+                 <ArrowRight className="h-5 w-5 text-neutral-300" />
+               </button>
+             ))}
+           </div>
          </div>
        )}
 

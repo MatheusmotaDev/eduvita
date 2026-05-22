@@ -30,7 +30,7 @@ export function MapClient() {
   }
 
   return (
-    <div className="h-[600px] w-full bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden relative">
+    <div className="h-[400px] lg:h-[600px] w-full rounded-xl overflow-hidden shadow-sm border border-neutral-200 relative">
       <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{

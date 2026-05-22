@@ -20,11 +20,24 @@ const secondaryItems = [
   { icon: Settings, label: "Configurações", href: "#" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen = false, onClose = () => {} }: { isOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 z-20 flex h-screen w-[280px] flex-col border-r border-neutral-300 bg-white">
+    <>
+      {/* Overlay escuro no mobile quando aberto */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar com transição */}
+      <aside className={cn(
+        "fixed left-0 top-0 z-30 flex h-screen w-[280px] flex-col border-r border-neutral-300 bg-white transition-transform duration-300",
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
       <div className="flex h-20 items-center px-6 pt-2">
         <Link href="/">
           <Image 
@@ -85,6 +98,7 @@ export function Sidebar() {
           </nav>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
