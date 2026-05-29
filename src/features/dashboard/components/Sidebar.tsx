@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutDashboard, Map, Trophy, FileCheck, School, Settings, BookOpen } from "lucide-react";
+import { LayoutDashboard, Map, Trophy, FileCheck, School, Settings, BookOpen, AlertCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 import { usePathname } from "next/navigation";
@@ -13,6 +13,7 @@ const menuItems = [
   { icon: Trophy, label: "Rankings Municipais", href: "/rankings" },
   { icon: FileCheck, label: "Conformidade Legal", href: "/conformidade" },
   { icon: School, label: "Perfil de Escola", href: "/escolas" },
+  { icon: AlertCircle, label: "Ouvidoria (Alertas)", href: "/denuncias" },
 ];
 
 const secondaryItems = [

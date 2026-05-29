@@ -5,6 +5,8 @@ import { KPICard } from "@/features/dashboard/components/KPICard";
 import { HeartHandshake, Leaf, Utensils, Accessibility } from "lucide-react";
 import { SchoolDataGrid } from "./SchoolDataGrid";
 import { SchoolDrawer } from "@/features/schools/components/SchoolDrawer";
+import { ChartIVEB } from "./ChartIVEB";
+import { IBGEStats } from "./IBGEStats";
 
 export function DashboardClient({ metrics }: { metrics: Record<string, number | string> }) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -65,11 +67,17 @@ export function DashboardClient({ metrics }: { metrics: Record<string, number | 
           onClick={() => toggleFilter('verde')}
         />
       </div>
+      
+      <IBGEStats />
 
-      <SchoolDataGrid 
-        filterType={activeFilter} 
-        onSelectSchool={(id) => setSelectedSchoolId(id)} 
-      />
+      <ChartIVEB />
+
+      <div className="mt-8">
+        <SchoolDataGrid 
+          filterType={activeFilter} 
+          onSelectSchool={(id) => setSelectedSchoolId(id)} 
+        />
+      </div>
 
       {selectedSchoolId !== null && (
         <SchoolDrawer 

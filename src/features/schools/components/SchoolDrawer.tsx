@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getSchoolDetails } from "../services/schoolService";
 import { Badge } from "@/shared/ui/Badge";
 import { cn } from "@/shared/lib/utils";
+import { createDenuncia } from "@/features/denuncias/services/denunciaService";
 
 interface SchoolDrawerProps {
   schoolId: number | null;
@@ -12,6 +13,9 @@ interface SchoolDrawerProps {
 export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
   const [school, setSchool] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [denunciaText, setDenunciaText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     if (schoolId) {
@@ -19,6 +23,8 @@ export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
       getSchoolDetails(schoolId).then(data => {
         setSchool(data);
         setLoading(false);
+        setSuccessMsg("");
+        setDenunciaText("");
       });
     }
   }, [schoolId]);
@@ -119,6 +125,44 @@ export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
                           <div className="text-xs text-neutral-500 font-semibold uppercase mt-1">Fonoaudiólogos</div>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="mt-8 space-y-4 pt-4 border-t border-neutral-200">
+                      <h4 className="font-semibold text-neutral-900">Ouvidoria e Alertas</h4>
+                      <p className="text-sm text-neutral-500">Notou alguma irregularidade nesta escola? Registre um alerta público.</p>
+                      
+                      {successMsg ? (
+                        <div className="p-4 bg-success-50 text-success-700 rounded-lg text-sm font-semibold border border-success-200">
+                          {successMsg}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          <textarea 
+                            value={denunciaText}
+                            onChange={(e) => setDenunciaText(e.target.value)}
+                            className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="Descreva a irregularidade (ex: Banheiro quebrado)..."
+                            rows={3}
+                          />
+                          <button 
+                            disabled={isSubmitting || denunciaText.length < 5}
+                            onClick={async () => {
+                              setIsSubmitting(true);
+                              try {
+                                await createDenuncia(school.co_entidade, school.no_entidade, denunciaText);
+                                setSuccessMsg("Alerta registrado com sucesso!");
+                              } catch (e) {
+                                alert("Erro ao registrar alerta.");
+                              } finally {
+                                setIsSubmitting(false);
+                              }
+                            }}
+                            className="w-full py-2.5 bg-critical-600 hover:bg-critical-700 text-white rounded-lg font-semibold text-sm transition-colors disabled:opacity-50"
+                          >
+                            {isSubmitting ? "Enviando..." : "Registrar Alerta"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 );
