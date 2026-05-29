@@ -65,40 +65,57 @@ export function DenunciasClient() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {denuncias.map((d) => (
-        <div key={d.id} className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div>
-            <div className="flex justify-between items-start mb-4 gap-4">
-              <h3 className="font-bold text-neutral-900 text-lg leading-tight line-clamp-2" title={d.no_entidade}>
-                {d.no_entidade}
-              </h3>
-              <Badge variant="warning" className="shrink-0">{new Date(d.created_at).toLocaleDateString("pt-BR")}</Badge>
+        <div key={d.id} className="bg-white rounded-2xl shadow-sm border border-neutral-200 flex flex-col justify-between overflow-hidden hover:shadow-md transition-shadow group">
+          
+          {/* Header */}
+          <div className="p-6 pb-4 border-b border-neutral-100 flex flex-col gap-3 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-warning-100/50 to-transparent rounded-bl-[100px] -z-0 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div className="flex justify-between items-center z-10">
+              <Badge variant="warning" className="flex items-center gap-1.5 shadow-sm border-warning-200">
+                <AlertTriangle className="h-3 w-3" />
+                {d.status || 'Pendente'}
+              </Badge>
+              <span className="text-xs font-semibold text-neutral-400">
+                {new Date(d.created_at).toLocaleDateString("pt-BR")}
+              </span>
             </div>
             
+            <h3 className="font-display font-bold text-neutral-900 text-lg leading-snug line-clamp-2 z-10 mt-1" title={d.no_entidade}>
+              {d.no_entidade}
+            </h3>
+          </div>
+
+          {/* Body */}
+          <div className="p-6 flex-1 bg-neutral-50/50">
             {editingId === d.id ? (
               <textarea 
                 value={editDesc} 
                 onChange={(e) => setEditDesc(e.target.value)}
-                className="w-full p-3 text-sm text-neutral-900 bg-neutral-50 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                className="w-full p-4 text-sm text-neutral-900 bg-white border border-primary-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-inner resize-none transition-shadow"
                 rows={4}
                 autoFocus
               />
             ) : (
-              <p className="text-neutral-600 text-sm leading-relaxed bg-neutral-50 p-4 rounded-lg border border-neutral-100 relative">
-                <span className="absolute -top-3 left-2 bg-white px-1 text-xs font-bold text-neutral-400 uppercase">Relato</span>
-                "{d.descricao}"
-              </p>
+              <div className="relative pl-4">
+                <div className="absolute left-0 top-1 bottom-1 w-1 bg-warning-400 rounded-full opacity-60"></div>
+                <p className="text-neutral-700 text-sm leading-relaxed italic">
+                  "{d.descricao}"
+                </p>
+              </div>
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-neutral-100">
+          {/* Footer Actions */}
+          <div className="p-4 bg-white border-t border-neutral-100 flex items-center justify-end gap-2">
             {editingId === d.id ? (
               <>
-                <button onClick={() => setEditingId(null)} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors">
+                <button onClick={() => setEditingId(null)} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 rounded-xl transition-all">
                   <X className="h-4 w-4" /> Cancelar
                 </button>
-                <button onClick={() => handleUpdate(d.id)} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors">
+                <button onClick={() => handleUpdate(d.id)} className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow rounded-xl transition-all">
                   <Check className="h-4 w-4" /> Salvar
                 </button>
               </>
@@ -109,15 +126,15 @@ export function DenunciasClient() {
                     setEditingId(d.id);
                     setEditDesc(d.descricao);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
                 >
                   <Edit2 className="h-4 w-4" /> Editar
                 </button>
                 <button 
                   onClick={() => handleDelete(d.id)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-critical-700 bg-critical-50 hover:bg-critical-100 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-critical-700 bg-critical-50 hover:bg-critical-100 rounded-xl transition-colors"
                 >
-                  <Trash2 className="h-4 w-4" /> Apagar
+                  <Trash2 className="h-4 w-4" /> Excluir
                 </button>
               </>
             )}
