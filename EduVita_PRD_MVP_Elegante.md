@@ -96,7 +96,23 @@ TABLE denuncias (
 
 ---
 
-## 5. Pós-MVP — Visão Futura (Próximos Passos)
+## 5. Metodologia do Produto (IVEB)
+
+O **Índice de Vulnerabilidade Escolar do Brasil (IVEB)** é a métrica central do produto, desenvolvida para traduzir os dados brutos do INEP em um indicador único de fácil interpretação.
+
+- **Escala:** A nota vai de 0 (Zero Vulnerabilidade) a 10 (Vulnerabilidade Extrema). Quanto menor a nota, melhor.
+- **Avaliação Individual:** O sistema avalia cada escola da rede municipal, atribuindo pontos de penalidade pela ausência de recursos críticos:
+  - `+4 pontos`: ausência de banheiro acessível (PNE)
+  - `+3 pontos`: ausência de cozinha
+  - `+3 pontos`: ausência de refeitório adequado
+- **Classificação:** Quando a soma de penalidades de uma escola atinge ou ultrapassa **4 pontos**, ela é classificada como **Escola Crítica**.
+- **Cálculo Municipal:** O IVEB final do município é calculado pela proporção de Escolas Críticas em relação ao total de escolas da rede, multiplicada por 10. *(Exemplo: se 50% das escolas de uma cidade são críticas, o IVEB será 5.0)*.
+
+Todos os dados que alimentam este cálculo são públicos (Microdados do INEP).
+
+---
+
+## 6. Pós-MVP — Visão Futura (Próximos Passos)
 
 Com a entrega da Avaliação A07 garantida e a infraestrutura básica totalmente funcional, os próximos passos são:
 1. **Autenticação:** Implementar login de usuários via Supabase Auth para que apenas usuários verificados possam criar denúncias.
