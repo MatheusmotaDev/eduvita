@@ -65,71 +65,65 @@ export function DenunciasClient() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-neutral-50 text-xs uppercase text-neutral-500 border-b border-neutral-200">
-              <th className="p-4">Escola</th>
-              <th className="p-4">Descrição do Alerta</th>
-              <th className="p-4">Data</th>
-              <th className="p-4 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-100">
-            {denuncias.map((d) => (
-              <tr key={d.id} className="hover:bg-neutral-50 transition-colors">
-                <td className="p-4 font-medium text-neutral-900 max-w-[200px] truncate" title={d.no_entidade}>
-                  {d.no_entidade}
-                </td>
-                <td className="p-4">
-                  {editingId === d.id ? (
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value={editDesc} 
-                        onChange={(e) => setEditDesc(e.target.value)}
-                        className="flex-1 px-3 py-1 text-sm border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
-                        autoFocus
-                      />
-                      <button onClick={() => handleUpdate(d.id)} className="p-1 text-success-600 hover:bg-success-100 rounded">
-                        <Check className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => setEditingId(null)} className="p-1 text-critical-600 hover:bg-critical-100 rounded">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-neutral-600">{d.descricao}</span>
-                  )}
-                </td>
-                <td className="p-4 text-sm text-neutral-500">
-                  {new Date(d.created_at).toLocaleDateString("pt-BR")}
-                </td>
-                <td className="p-4 text-right space-x-2">
-                  <button 
-                    onClick={() => {
-                      setEditingId(d.id);
-                      setEditDesc(d.descricao);
-                    }}
-                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                    title="Editar"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(d.id)}
-                    className="p-2 text-critical-600 hover:bg-critical-50 rounded-lg transition-colors"
-                    title="Excluir"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      {denuncias.map((d) => (
+        <div key={d.id} className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div>
+            <div className="flex justify-between items-start mb-4 gap-4">
+              <h3 className="font-bold text-neutral-900 text-lg leading-tight line-clamp-2" title={d.no_entidade}>
+                {d.no_entidade}
+              </h3>
+              <Badge variant="warning" className="shrink-0">{new Date(d.created_at).toLocaleDateString("pt-BR")}</Badge>
+            </div>
+            
+            {editingId === d.id ? (
+              <textarea 
+                value={editDesc} 
+                onChange={(e) => setEditDesc(e.target.value)}
+                className="w-full p-3 text-sm text-neutral-900 bg-neutral-50 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                rows={4}
+                autoFocus
+              />
+            ) : (
+              <p className="text-neutral-600 text-sm leading-relaxed bg-neutral-50 p-4 rounded-lg border border-neutral-100 relative">
+                <span className="absolute -top-3 left-2 bg-white px-1 text-xs font-bold text-neutral-400 uppercase">Relato</span>
+                "{d.descricao}"
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-neutral-100">
+            {editingId === d.id ? (
+              <>
+                <button onClick={() => setEditingId(null)} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors">
+                  <X className="h-4 w-4" /> Cancelar
+                </button>
+                <button onClick={() => handleUpdate(d.id)} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors">
+                  <Check className="h-4 w-4" /> Salvar
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  onClick={() => {
+                    setEditingId(d.id);
+                    setEditDesc(d.descricao);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                >
+                  <Edit2 className="h-4 w-4" /> Editar
+                </button>
+                <button 
+                  onClick={() => handleDelete(d.id)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-critical-700 bg-critical-50 hover:bg-critical-100 rounded-lg transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" /> Apagar
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
