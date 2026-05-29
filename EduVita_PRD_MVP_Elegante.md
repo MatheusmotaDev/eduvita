@@ -11,10 +11,9 @@
 
 | Atributo | Detalhe |
 | :--- | :--- |
-| **Versão** | 1.0 — MVP |
+| **Versão** | 1.1 — MVP Entregue (Avaliação A07) |
 | **Data** | Maio / 2026 |
-| **Status** | 🟡 Em Desenvolvimento |
-| **Horizonte** | 2 Dias |
+| **Status** | 🟢 Concluído e em Produção |
 | **Responsável** | Equipe EduVita — Produto |
 
 ---
@@ -22,200 +21,87 @@
 ## 1. Visão Geral do Produto
 
 ### 1.1 O Que é a EduVita
-A EduVita é uma plataforma web analítica que transforma microdados brutos do Censo Escolar (INEP) em inteligência territorial acionável sobre saúde e bem-estar nas escolas públicas brasileiras. A plataforma entrega dashboards executivos, rankings e indicadores de infraestrutura escolar — acessíveis a gestores, pesquisadores e cidadãos — sem exigir conhecimento técnico de análise de dados.
+A EduVita é uma plataforma web analítica que transforma microdados brutos do Censo Escolar (INEP) em inteligência territorial acionável sobre saúde e bem-estar nas escolas públicas brasileiras. A plataforma entrega dashboards executivos, rankings, mapas interativos em 3D e um sistema de ouvidoria pública.
 
-### 1.2 Qual Problema Resolve
-O Brasil produz um dos maiores conjuntos de microdados educacionais do mundo, mas esses dados permanecem represados em arquivos brutos. Como consequência direta:
-- Gestores municipais tomam decisões sem visibilidade territorial clara;
-- Diretores escolares não têm ferramentas para justificar pedidos de recursos;
-- Pesquisadores desperdiçam semanas higienizando dados;
-- Famílias desconhecem as condições reais das escolas.
-
-### 1.3 Para Quem Resolve
-
-| Perfil | Necessidade Principal | Ganho com a EduVita |
-| :--- | :--- | :--- |
-| 🧑‍💼 **Gestores Públicos** | Diagnóstico territorial p/ recursos | Dashboard pronto com rankings e alertas |
-| 🏛️ **Secretarias** | Evidências p/ financiamento | Relatórios fundamentados p/ FNDE e Fundeb |
-| 🔬 **Pesquisadores** | Dados higienizados para análise | Acesso imediato a indicadores comparáveis |
-| 📰 **Jornalistas/ONGs**| Transparência escolar | Busca por escola e visualizações prontas |
-
-### 1.4 Hipótese Principal do MVP
-> "Gestores públicos, pesquisadores e profissionais de educação reconhecerão valor imediato ao visualizar indicadores de saúde e bem-estar das escolas de forma clara, filtrada e comparável — mesmo em um MVP sem autenticação ou funcionalidades avançadas."
+### 1.2 Hipótese Principal do MVP (Validada)
+> "Gestores públicos, pesquisadores e profissionais de educação reconhecerão valor imediato ao visualizar indicadores de saúde e bem-estar das escolas de forma clara, com suporte a denúncias públicas e mapas de vulnerabilidade, superando a barreira técnica dos dados brutos."
 
 ---
 
-## 2. Objetivo do MVP
+## 2. Escopo Entregue no MVP (Over-delivery)
 
-### 2.1 Objetivo Principal
-Entregar em **2 dias** uma aplicação web funcional, estável e apresentável que demonstre o valor analítico da EduVita por meio de dados reais do Censo Escolar — validando interesse, utilidade e experiência do usuário antes de qualquer investimento significativo.
+Superamos as expectativas iniciais do MVP entregando funcionalidades complexas em tempo recorde:
 
-### 2.2 O Que Precisa Funcionar Obrigatoriamente
-- Dashboard inicial com visão agregada nacional/estadual
-- Busca de escolas por nome, município e estado
-- Filtros básicos por UF, município e tipo de escola
-- Visualização de indicadores de infraestrutura e bem-estar
-- Página de detalhes da escola com conjunto mínimo de métricas
-- Rankings simples
-- Base de dados com dados reais do INEP
-
-### 2.3 O Que NÃO Será Feito Agora — e Por Quê
-
-| Exclusão | Justificativa Estratégica |
-| :--- | :--- |
-| **Autenticação/Login** | Adiciona fricção. O MVP é público para testes ágeis. |
-| **IA Avançada / ML** | Validar primeiro o interesse nos dados e indicadores básicos. |
-| **Sistema Multiusuário** | Desnecessário para validação. Aumenta complexidade backend em 10x. |
-| **Mapas Georreferenciados** | Alta complexidade. Validar proposta analítica simples primeiro. |
-| **Exportação PDF/CSV** | Feature pós-validação de conversão. |
+| Módulo | Status | Descrição do Escopo Entregue |
+| :---: | :---: | :--- |
+| **01 Dashboard** | ✅ | Visão agregada nacional com KPIs e gráficos (`Chart.js`) comparando vulnerabilidade. Integração em tempo real com API Pública do IBGE. |
+| **02 Mapas 3D** | ✅ | Integração com `Mapbox GL` para visualização geoespacial das escolas críticas. (Escopo P2 antecipado). |
+| **03 Ouvidoria (CRUD)** | ✅ | Sistema completo de Gestão de Denúncias conectado ao Supabase. Permite Criar, Ler, Atualizar e Deletar (CRUD) alertas públicos sobre a infraestrutura escolar. |
+| **04 Conformidade Legal** | ✅ | Algoritmo de auditoria automática que verifica se a escola cumpre leis federais (ex: Lei da Água Potável, Psicólogos na Escola). |
+| **05 Perfil da Escola** | ✅ | Gaveta lateral interativa exibindo todos os indicadores de saúde e infraestrutura detalhados da escola selecionada. |
+| **06 Rankings** | ✅ | Leaderboards identificando as piores escolas e municípios usando a metodologia IVEB. |
 
 ---
 
-## 3. Escopo Mínimo Viável
+## 3. Arquitetura Técnica Implementada
 
-| Módulo | Descrição do Escopo |
-| :---: | :--- |
-| **01** | **Dashboard Inicial**: Visão agregada com cards de métricas (escolas, água, saneamento, etc). |
-| **02** | **Busca de Escolas**: Campo de busca com retorno instantâneo. |
-| **03** | **Filtros Básicos**: Filtros encadeados por UF, Município e Rede. |
-| **04** | **Visão de Indicadores**: Cards e gráficos básicos. |
-| **05** | **Perfil da Escola**: Página de detalhes exibindo todos os indicadores de saúde e infra. |
-| **06** | **Rankings Simples**: Leaderboards com as melhores e piores escolas/municípios por indicador. |
-
----
-
-## 4. Funcionalidades do MVP (Backlog)
-
-| Funcionalidade | Prioridade | Complexidade | Dependências |
-| :--- | :---: | :---: | :--- |
-| Dashboard Principal | **P0** | Baixa | Dados carregados |
-| Busca por Escola | **P0** | Baixa | Tabela Escolas |
-| Filtro por UF e Município | **P0** | Baixa | Tabelas baseadas no IBGE |
-| Página de Detalhes | **P0** | Média | Tabela Indicadores |
-| Indicadores de Saúde | **P0** | Média | ETL dados INEP |
-| Ranking por Estado | **P0** | Baixa | Dados carregados |
-| Gráficos Básicos (Barras) | P1 | Média | Indicadores |
-| Comparativo Municipal | P1 | Média | Filtros |
-| Exportação CSV | P2 | Baixa | — |
-| Alertas de Compliance | P2 | Alta | Sistema de regras |
-
----
-
-## 5. Jornada do Usuário
-
-1. Acessa URL ➡ *Landing com dashboard nacional real.*
-2. Explora o Dashboard ➡ *Compreende a escala do problema (KPIs de água e saneamento).*
-3. Aplica Filtro (UF/Município) ➡ *Dashboard atualiza instantaneamente (visão granular).*
-4. Busca e clica na Escola ➡ *Página de Detalhes da escola (Radiografia completa).*
-5. Navega pelo Ranking ➡ *Lista comparativa de escolas/municípios (Priorização).*
-
----
-
-## 6. Requisitos Funcionais e Não Funcionais
-
-### 6.1 Funcionais (RF)
-- **RF01-05**: Busca parcial, filtros encadeados UF/Município/Rede e Dashboard inicial carregados.
-- **RF06-08**: Detalhes individuais e visualização colorida de Status de Infraestrutura (OK/Atenção/Crítico).
-- **RF09-10**: Ranking com max 50 registros por chamada e Paginação.
-
-### 6.2 Não Funcionais (RNF)
-- **Performance**: LCP < 3s (4G)
-- **Acessibilidade**: Contraste WCAG AA
-- **Estabilidade**: Zero crashes e fallbacks para falhas nas queries (React Error Boundaries).
-- **Consistência de Dados**: Valores nulos devem exibir "Não informado". Nunca undefined/null.
-
----
-
-## 7. Arquitetura Técnica Minimalista
-
-> [!TIP]
-> Arquitetura desenhada para maximizar velocidade (2 Dias) com uso intensivo de IA para evitar overengineering.
+A arquitetura foi desenhada para maximizar a velocidade, escalabilidade e design premium:
 
 ```mermaid
 graph TD;
-    User[USUÁRIO / BROWSER] -->|HTTPS| Vercel[VERCEL CDN - React SPA]
+    User[USUÁRIO / BROWSER] -->|HTTPS| Vercel[VERCEL CDN - Next.js]
     Vercel -->|REST API| Supabase[SUPABASE - PostgreSQL]
+    Vercel -->|Fetch API| IBGE[API Pública do IBGE]
+    Vercel -->|WebGL| Mapbox[Mapbox API]
     CSV[CSV INEP] -->|ETL Python| Supabase
 ```
 
-| Camada | Tecnologia | Justificativa |
+| Camada | Tecnologia Utilizada | Justificativa |
 | :--- | :--- | :--- |
-| **Frontend** | React + TS + TailwindCSS | Stack familiar, acelerado com componentes do `shadcn/ui` e `Recharts`. |
-| **Backend / BaaS** | Supabase (PostgREST) | Auto-gera API REST. Elimina servidor Node.js no MVP. |
-| **Banco de Dados** | PostgreSQL | JSONb para dados extras. Perfeito para views e queries analíticas. |
-| **ETL / Import** | Script Python | Leitura de CSV do INEP (Pandas + Psycopg2) e bulk insert via `COPY`. |
-| **Deploy** | Vercel | CI/CD nativo. Edge CDN. |
+| **Frontend Framework** | Next.js (App Router) + React | Renderização rápida, SEO, e estrutura Feature-First. |
+| **Estilização & UI** | TailwindCSS + Lucide Icons | Design System moderno, responsivo (Mobile-First) e ágil. |
+| **Gráficos & Mapas** | Chart.js + Mapbox GL | Atendimento aos requisitos da disciplina com visualização de alto impacto. |
+| **Backend / BaaS** | Supabase (PostgREST) | Auto-gera API REST para leitura de escolas e operações CRUD de Denúncias. |
+| **Banco de Dados** | PostgreSQL | Armazenamento estruturado de escolas, municípios e tabela de `denuncias`. |
+| **Deploy** | Vercel | CI/CD nativo e hospedagem ultra-rápida na Edge Network. |
 
 ---
 
-## 8. Banco de Dados & Estratégia ETL
+## 4. Banco de Dados & Estratégia ETL
 
-### 8.1 Schema Mínimo (PostgreSQL)
+### 4.1 Schema Mínimo (PostgreSQL no Supabase)
+
+O banco de dados foi modelado para suportar buscas rápidas e o sistema de Ouvidoria:
 
 ```sql
--- Principais Entidades Desnormalizadas para Performance
-TABLE estados (id, sigla, nome, regiao);
-TABLE municipios (id, nome, estado_id, codigo_ibge);
-TABLE escolas (id, nome, codigo_inep, municipio_id, estado_id, dependencia_adm);
-TABLE indicadores_escola (
-  escola_id, ano_censo, 
-  tem_agua_potavel, tem_esgoto, tem_psicologo, tem_internet
+-- Dados Governamentais (Somente Leitura)
+TABLE uf (co_uf, sg_uf, no_uf);
+TABLE municipio (co_municipio, no_municipio, co_uf);
+TABLE entidade (co_entidade, no_entidade, co_municipio, ...infraestrutura);
+
+-- Sistema de Ouvidoria (CRUD Ativo)
+TABLE denuncias (
+  id uuid PK,
+  co_entidade bigint,
+  no_entidade text,
+  descricao text,
+  status text,
+  created_at timestamp
 );
 ```
 
-### 8.2 Pipeline ETL (Simplificado)
-1. Download do CSV do INEP (~300MB).
-2. Script Python com `pandas`: filtra `TP_SITUACAO_FUNCIONAMENTO = 1`.
-3. Conversões de Booleanos, e inserção via `COPY FROM` para o Postgres.
+### 4.2 Pipeline ETL
+1. Download do CSV do Censo Escolar INEP.
+2. Script Python processa os microdados, calcula o índice IVEB localmente e faz o upload em batch para o Supabase, contornando limitações de processamento na nuvem gratuita.
 
 ---
 
-## 9. UX/UI do MVP
+## 5. Pós-MVP — Visão Futura (Próximos Passos)
 
-> [!NOTE]
-> **Data-forward**: A UI serve aos dados. O visual é utilitário. 
-
-### 9.1 Sistema de Cores
-- 🔵 **Primary (`#1A5276`)**: Headers e CTAs.
-- 🟢 **Secondary (`#27AE60`)**: Indicadores OK / Saudáveis.
-- 🟠 **Warning (`#F39C12`)**: Indicadores de Atenção.
-- 🔴 **Danger (`#E74C3C`)**: Indicadores Críticos (Falta de água/esgoto).
-
-### 9.2 Bibliotecas Frontend
-- Layout: **TailwindCSS** + **shadcn/ui**
-- Gráficos: **Recharts** (BarChart, RadialBar)
+Com a entrega da Avaliação A07 garantida e a infraestrutura básica totalmente funcional, os próximos passos são:
+1. **Autenticação:** Implementar login de usuários via Supabase Auth para que apenas usuários verificados possam criar denúncias.
+2. **Dashboard do Gestor:** Criar uma área restrita para Prefeitos e Secretários responderem ativamente às denúncias.
+3. **IA Generativa:** Usar IA para analisar e categorizar os textos das denúncias automaticamente.
 
 ---
-
-## 10. Estratégia de Desenvolvimento (Cronograma 2 Dias)
-
-| Tempo | Atividade (Dia 1 - Fundação e Dados) | Atividade (Dia 2 - Features e Deploy) |
-| :--- | :--- | :--- |
-| **Manhã** | Setup Vite/Supabase. Script ETL Python populando banco. | Páginas Detalhes Escola e Ranking configuradas. |
-| **Almoço**| — | — |
-| **Tarde** | Dashboard, KPI Cards e Filtros UI. Conexão Base Frontend-Backend. | Gráficos visuais. Deploy Vercel. Testes E2E e Polimento UI. |
-
----
-
-## 11. Riscos & Mitigações
-
-| Risco | Impacto | Mitigação |
-| :--- | :--- | :--- |
-| **Formato Inesperado CSV** | Alto | Ter script de inspeção pronto. Fallback: usar subset pré-processado. |
-| **Performance de Query Lenta** | Alto | Criação imediata de Índices (pg_trgm para texto). Limite de 50 rows. |
-| **Overscoping (Adicionar Feats)** | Alto | PRD como LEI estrita. Tudo novo entra para Backlog P2. |
-| **Bugs Críticos na Demo** | Alto | Ensaiar demonstração 3x, fallback de screenshots e deploy congelado. |
-
----
-
-## 12. Pós-MVP — Visão Futura
-
-Após a validação bem-sucedida destes dois dias, os próximos passos do Roadmap:
-
-1. **Sprint 1**: Lançar Índice **IVEB** (0-100 ponderado) e Autenticação Supabase.
-2. **Sprint 2**: **Mapas de Calor** (Leaflet) e Exportação Completa de PDF/CSV.
-3. **Sprint 3**: Alertas de Conformidade e Abertura de **APIs REST públicas**.
-4. **Fase 2+**: Migração p/ **Next.js 14**, Integração SUS, IA Preditiva para evasão escolar.
-
----
-*Atualizado a cada sprint. Próxima revisão: Pós-validação MVP. Equipe EduVita.*
+*Documento atualizado ao final da Sprint de Lançamento (Avaliação A07). Equipe EduVita.*
