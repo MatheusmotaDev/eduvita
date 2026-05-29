@@ -89,3 +89,10 @@ Abra o seu navegador de preferência e acesse:
 
 ---
 
+## 👥 Desenvolvedores do Projeto
+
+Projeto acadêmico construído por:
+
+- **Matheus Alves**
+- **Rafael Pimentel**
+- **Ruan Ricardo**
