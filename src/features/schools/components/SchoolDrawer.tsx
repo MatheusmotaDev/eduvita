@@ -140,7 +140,7 @@ export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
                           <textarea 
                             value={denunciaText}
                             onChange={(e) => setDenunciaText(e.target.value)}
-                            className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full p-3 bg-neutral-50 text-neutral-900 placeholder:text-neutral-400 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-inner resize-none"
                             placeholder="Descreva a irregularidade (ex: Banheiro quebrado)..."
                             rows={3}
                           />
@@ -157,7 +157,7 @@ export function SchoolDrawer({ schoolId, onClose }: SchoolDrawerProps) {
                                 setIsSubmitting(false);
                               }
                             }}
-                            className="w-full py-2.5 bg-critical-600 hover:bg-critical-700 text-white rounded-lg font-semibold text-sm transition-colors disabled:opacity-50"
+                            className="w-full py-2.5 bg-critical-600 hover:bg-critical-700 text-white rounded-lg font-bold text-sm transition-colors disabled:opacity-50 shadow-sm"
                           >
                             {isSubmitting ? "Enviando..." : "Registrar Alerta"}
                           </button>
