@@ -20,11 +20,11 @@ export async function getDenuncias(): Promise<Denuncia[]> {
   return res.json();
 }
 
-export async function createDenuncia(denuncia: Partial<Denuncia>) {
+export async function createDenuncia(co_entidade: number, no_entidade: string, descricao: string) {
   const res = await fetch(`${getBaseUrl()}/api/denuncias`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(denuncia),
+    body: JSON.stringify({ co_entidade, no_entidade, descricao }),
   });
   if (!res.ok) throw new Error('Falha ao criar denúncia');
   return res.json();
