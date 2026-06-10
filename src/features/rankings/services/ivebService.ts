@@ -9,8 +9,15 @@ export interface CityVulnerability {
   criticalSchools: number;
 }
 
+export const getBaseUrl = () => {
+  if (typeof window !== 'undefined') return ''; 
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return 'http://localhost:3000';
+};
+
 export async function getCityVulnerabilities(): Promise<CityVulnerability[]> {
-  const res = await fetch('/api/rankings', { next: { revalidate: 3600 } });
+  const res = await fetch(`${getBaseUrl()}/api/rankings`, { next: { revalidate: 3600 } });
   if (!res.ok) {
     console.error('Falha ao buscar rankings do IVEB');
     return [];

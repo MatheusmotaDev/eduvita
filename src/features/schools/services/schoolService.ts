@@ -1,21 +1,28 @@
+export const getBaseUrl = () => {
+  if (typeof window !== 'undefined') return ''; 
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return 'http://localhost:3000';
+};
+
 // Busca rápida no Header
 export async function searchSchools(query: string) {
   if (!query) return [];
-  const res = await fetch(`/api/schools/search?q=${encodeURIComponent(query)}`);
+  const res = await fetch(`${getBaseUrl()}/api/schools/search?q=${encodeURIComponent(query)}`);
   if (!res.ok) return [];
   return res.json();
 }
 
 // Perfil completo da escola
 export async function getSchoolDetails(id: number) {
-  const res = await fetch(`/api/schools/${id}`);
+  const res = await fetch(`${getBaseUrl()}/api/schools/${id}`);
   if (!res.ok) return null;
   return res.json();
 }
 
 // Métricas agregadas reais para o Dashboard (Etapa 5)
 export async function getDashboardMetrics() {
-  const res = await fetch('/api/schools/metrics');
+  const res = await fetch(`${getBaseUrl()}/api/schools/metrics`);
   if (!res.ok) {
     return {
       total: 1, noAcessCount: 0, noAcessPct: '0,0',
@@ -33,19 +40,19 @@ export async function getFilteredSchools(filterType: string | null, stateId: num
   if (cityId) params.set('cityId', String(cityId));
   params.set('page', String(page));
 
-  const res = await fetch(`/api/schools/filtered?${params.toString()}`);
+  const res = await fetch(`${getBaseUrl()}/api/schools/filtered?${params.toString()}`);
   if (!res.ok) return [];
   return res.json();
 }
 
 export async function getStates() {
-  const res = await fetch('/api/locations?type=states');
+  const res = await fetch(`${getBaseUrl()}/api/locations?type=states`);
   if (!res.ok) return [];
   return res.json();
 }
 
 export async function getCitiesByState(coUf: number) {
-  const res = await fetch(`/api/locations?type=cities&uf=${coUf}`);
+  const res = await fetch(`${getBaseUrl()}/api/locations?type=cities&uf=${coUf}`);
   if (!res.ok) return [];
   return res.json();
 }

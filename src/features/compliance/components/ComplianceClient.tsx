@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Loader2, FileCheck, XCircle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/shared/ui/Badge";
 
+import { getDashboardMetrics } from "@/features/schools/services/schoolService";
+
 export function ComplianceClient() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
@@ -16,20 +18,17 @@ export function ComplianceClient() {
   useEffect(() => {
     async function fetchCompliance() {
       try {
-        const res = await fetch('/api/schools/metrics');
-        if (res.ok) {
-          const metrics = await res.json();
-          const total = metrics.total;
-          const nonCompliant = metrics.noAcessCount;
-          const compliant = total - nonCompliant;
-          
-          setData({
-            total,
-            compliant,
-            nonCompliant,
-            percentage: Number(((compliant / total) * 100).toFixed(1))
-          });
-        }
+        const metrics = await getDashboardMetrics();
+        const total = metrics.total;
+        const nonCompliant = metrics.noAcessCount;
+        const compliant = total - nonCompliant;
+        
+        setData({
+          total,
+          compliant,
+          nonCompliant,
+          percentage: Number(((compliant / total) * 100).toFixed(1))
+        });
       } catch (error) {
         console.error("Erro ao carregar métricas de conformidade:", error);
       } finally {
