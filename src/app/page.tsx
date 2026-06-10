@@ -7,6 +7,7 @@ import pool from "@/shared/lib/db";
 export const revalidate = 0;
 
 export default async function Home() {
+  let dbError = null;
   let metrics = {
     total: 1, noAcessCount: 0, noAcessPct: '0,0',
     psiPct: '0,0', alimPct: '0,0', verdePct: '0,0'
@@ -36,12 +37,20 @@ export default async function Home() {
       alimPct: (((alimCount || 0) / totalEscolas) * 100).toFixed(1).replace('.', ','),
       verdePct: (((verdeCount || 0) / totalEscolas) * 100).toFixed(1).replace('.', ',')
     };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Erro ao buscar métricas no SSR:", err);
+    dbError = err.message || String(err);
   }
 
   return (
     <DashboardLayout>
+      {dbError && (
+        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">
+          <strong>Erro de Conexão com Banco (Vercel): </strong> {dbError}
+          <br/>
+          Verifique se a variável DATABASE_URL está configurada corretamente na Vercel e se você fez o Redeploy.
+        </div>
+      )}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="font-display text-xl font-bold text-neutral-900">Dashboard Nacional</h1>
