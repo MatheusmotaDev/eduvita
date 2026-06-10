@@ -2,12 +2,43 @@ import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout
 import { DashboardClient } from "@/features/dashboard/components/DashboardClient";
 import { Button } from "@/shared/ui/Button";
 import { Download } from "lucide-react";
-import { getDashboardMetrics } from "@/features/schools/services/schoolService";
+import pool from "@/shared/lib/db";
 
 export const revalidate = 0;
 
 export default async function Home() {
-  const metrics = await getDashboardMetrics();
+  let metrics = {
+    total: 1, noAcessCount: 0, noAcessPct: '0,0',
+    psiPct: '0,0', alimPct: '0,0', verdePct: '0,0'
+  };
+
+  try {
+    const totalRes = await pool.query('SELECT COUNT(*) FROM escola');
+    const totalEscolas = parseInt(totalRes.rows[0].count, 10) || 1;
+
+    const noAcessRes = await pool.query('SELECT COUNT(*) FROM infraestrutura_bem_estar WHERE in_banheiro_pne = false');
+    const noAcessCount = parseInt(noAcessRes.rows[0].count, 10);
+
+    const psiRes = await pool.query('SELECT COUNT(*) FROM profissionais_saude WHERE qt_prof_psicologo > 0');
+    const psiCount = parseInt(psiRes.rows[0].count, 10);
+
+    const alimRes = await pool.query('SELECT COUNT(*) FROM infraestrutura_alimentacao WHERE in_cozinha = true AND in_refeitorio = true');
+    const alimCount = parseInt(alimRes.rows[0].count, 10);
+
+    const verdeRes = await pool.query('SELECT COUNT(*) FROM ambiente_escolar WHERE in_area_verde = true');
+    const verdeCount = parseInt(verdeRes.rows[0].count, 10);
+
+    metrics = {
+      total: totalEscolas,
+      noAcessCount: noAcessCount || 0,
+      noAcessPct: (((noAcessCount || 0) / totalEscolas) * 100).toFixed(1).replace('.', ','),
+      psiPct: (((psiCount || 0) / totalEscolas) * 100).toFixed(1).replace('.', ','),
+      alimPct: (((alimCount || 0) / totalEscolas) * 100).toFixed(1).replace('.', ','),
+      verdePct: (((verdeCount || 0) / totalEscolas) * 100).toFixed(1).replace('.', ',')
+    };
+  } catch (err) {
+    console.error("Erro ao buscar métricas no SSR:", err);
+  }
 
   return (
     <DashboardLayout>
