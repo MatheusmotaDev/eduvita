@@ -1,5 +1,3 @@
-import { supabase } from "@/shared/lib/supabase";
-
 export interface Denuncia {
   id: string;
   co_entidade: number;
@@ -11,45 +9,36 @@ export interface Denuncia {
 
 // CREATE
 export async function createDenuncia(co_entidade: number, no_entidade: string, descricao: string) {
-  const { data, error } = await supabase
-    .from("denuncias")
-    .insert([{ co_entidade, no_entidade, descricao }])
-    .select();
-
-  if (error) throw new Error(error.message);
-  return data;
+  const res = await fetch('/api/denuncias', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ co_entidade, no_entidade, descricao })
+  });
+  if (!res.ok) throw new Error('Falha ao criar denúncia');
+  return res.json();
 }
 
 // READ
 export async function getDenuncias() {
-  const { data, error } = await supabase
-    .from("denuncias")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-  return data as Denuncia[];
+  const res = await fetch('/api/denuncias', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Falha ao buscar denúncias');
+  return res.json() as Promise<Denuncia[]>;
 }
 
 // UPDATE
 export async function updateDenuncia(id: string, novaDescricao: string) {
-  const { data, error } = await supabase
-    .from("denuncias")
-    .update({ descricao: novaDescricao })
-    .eq("id", id)
-    .select();
-
-  if (error) throw new Error(error.message);
-  return data;
+  const res = await fetch(`/api/denuncias/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ descricao: novaDescricao })
+  });
+  if (!res.ok) throw new Error('Falha ao atualizar denúncia');
+  return res.json();
 }
 
 // DELETE
 export async function deleteDenuncia(id: string) {
-  const { error } = await supabase
-    .from("denuncias")
-    .delete()
-    .eq("id", id);
-
-  if (error) throw new Error(error.message);
-  return true;
+  const res = await fetch(`/api/denuncias/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Falha ao apagar denúncia');
+  return res.json();
 }

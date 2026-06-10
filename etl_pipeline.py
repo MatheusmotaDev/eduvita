@@ -1,10 +1,10 @@
 import csv
 import json
-import urllib.request
-import urllib.parse
+import psycopg2
+import psycopg2.extras
 import os
 
-# 1. Leitor manual do .env.local para não precisarmos do 'python-dotenv'
+# 1. Leitor manual do .env.local
 def load_env():
     env = {}
     try:
@@ -19,32 +19,37 @@ def load_env():
     return env
 
 env = load_env()
-url = env.get("NEXT_PUBLIC_SUPABASE_URL")
-key = env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+db_url = env.get("DATABASE_URL")
 
-if not url or not key:
-    raise Exception("Chaves do Supabase não encontradas no .env.local")
+if not db_url:
+    raise Exception("DATABASE_URL não encontrado no .env.local. Configure a url do Render.")
 
-# 2. Cliente HTTP manual para o Supabase REST API, para não precisarmos da biblioteca 'supabase'
-def upsert_supabase(table, data_list):
+# Conexão com o banco via psycopg2
+def get_db_connection():
+    return psycopg2.connect(db_url, sslmode='require')
+
+def upsert_batch(cursor, table, data_list):
     if not data_list: return
     
-    endpoint = f"{url}/rest/v1/{table}"
-    headers = {
-        "apikey": key,
-        "Authorization": f"Bearer {key}",
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates"
-    }
+    keys = data_list[0].keys()
+    columns = ', '.join(keys)
     
-    req = urllib.request.Request(endpoint, data=json.dumps(data_list).encode('utf-8'), headers=headers, method='POST')
-    try:
-        with urllib.request.urlopen(req) as response:
-            pass # Sucesso
-    except urllib.error.HTTPError as e:
-        print(f"Erro ao inserir na tabela {table}: {e.read().decode('utf-8')}")
+    # A lógica de conflito depende da chave primária de cada tabela.
+    # Exemplo genérico:
+    pk = 'co_entidade' if 'co_entidade' in keys else list(keys)[0]
+    
+    update_clause = ', '.join([f"{k} = EXCLUDED.{k}" for k in keys if k != pk])
+    
+    values_template = ', '.join(['%s'] * len(keys))
+    insert_query = f"INSERT INTO {table} ({columns}) VALUES %s ON CONFLICT ({pk}) DO UPDATE SET {update_clause}"
+    
+    # Se update_clause for vazio, é um DO NOTHING
+    if not update_clause:
+        insert_query = f"INSERT INTO {table} ({columns}) VALUES %s ON CONFLICT ({pk}) DO NOTHING"
+        
+    values = [[row[k] for k in keys] for row in data_list]
+    psycopg2.extras.execute_values(cursor, insert_query, values)
 
-# 3. Funções de limpeza
 def clean_bool(val):
     if not val or val.strip() == '' or val.strip() == 'NaN':
         return False
@@ -61,7 +66,9 @@ def clean_int(val):
 def run_etl(limit=None):
     csv_path = "INEP/Tabela_Escola_2025.csv"
     print(f"Iniciando ETL (Limite: {limit if limit else 'Sem limite'})...")
-    print("Usando 100% bibliotecas nativas do Python 3.14 (Sem dependências Pip)!")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
     regioes_vistas = set()
     estados_vistos = set()
@@ -70,7 +77,7 @@ def run_etl(limit=None):
     
     escola_batch, alimentacao_batch, bem_estar_batch = [], [], []
     saude_batch, material_batch, ambiente_batch = [], [], []
-    batch_size = 50
+    batch_size = 1000
     count = 0
     
     try:
@@ -85,19 +92,18 @@ def run_etl(limit=None):
             }
             
             for row in reader:
-                # Filtrar apenas escolas ativas localizadas nas capitais do Brasil
                 if row.get('TP_SITUACAO_FUNCIONAMENTO') != '1' or row.get('NO_MUNICIPIO', '').strip().upper() not in capitais:
                     continue
                     
                 co_regiao = row.get('CO_REGIAO')
                 if co_regiao and co_regiao not in regioes_vistas:
                     regioes_vistas.add(co_regiao)
-                    upsert_supabase('regiao', [{'co_regiao': int(co_regiao), 'no_regiao': row.get('NO_REGIAO')}])
+                    upsert_batch(cursor, 'regiao', [{'co_regiao': int(co_regiao), 'no_regiao': row.get('NO_REGIAO')}])
                     
                 co_uf = row.get('CO_UF')
                 if co_uf and co_uf not in estados_vistos:
                     estados_vistos.add(co_uf)
-                    upsert_supabase('estado', [{
+                    upsert_batch(cursor, 'estado', [{
                         'co_uf': int(co_uf), 
                         'no_uf': row.get('NO_UF'), 
                         'sg_uf': row.get('SG_UF'), 
@@ -107,7 +113,7 @@ def run_etl(limit=None):
                 co_municipio = row.get('CO_MUNICIPIO')
                 if co_municipio and co_municipio not in municipios_vistos:
                     municipios_vistos.add(co_municipio)
-                    upsert_supabase('municipio', [{
+                    upsert_batch(cursor, 'municipio', [{
                         'co_municipio': int(co_municipio),
                         'no_municipio': row.get('NO_MUNICIPIO', '')[:100],
                         'co_uf': int(co_uf) if co_uf else 0
@@ -116,7 +122,7 @@ def run_etl(limit=None):
                 tp_loc = row.get('TP_LOCALIZACAO_DIFERENCIADA')
                 if tp_loc and tp_loc not in locais_vistos:
                     locais_vistos.add(tp_loc)
-                    upsert_supabase('localizacao_diferenciada', [{
+                    upsert_batch(cursor, 'localizacao_diferenciada', [{
                         'tp_localizacao_diferenciada': int(tp_loc),
                         'ds_descricao': f"Tipo {tp_loc}"
                     }])
@@ -181,35 +187,40 @@ def run_etl(limit=None):
                 
                 count += 1
                 if len(escola_batch) >= batch_size:
-                    upsert_supabase('escola', escola_batch)
-                    upsert_supabase('infraestrutura_alimentacao', alimentacao_batch)
-                    upsert_supabase('infraestrutura_bem_estar', bem_estar_batch)
-                    upsert_supabase('profissionais_saude', saude_batch)
-                    upsert_supabase('material_pedagogico', material_batch)
-                    upsert_supabase('ambiente_escolar', ambiente_batch)
+                    upsert_batch(cursor, 'escola', escola_batch)
+                    upsert_batch(cursor, 'infraestrutura_alimentacao', alimentacao_batch)
+                    upsert_batch(cursor, 'infraestrutura_bem_estar', bem_estar_batch)
+                    upsert_batch(cursor, 'profissionais_saude', saude_batch)
+                    upsert_batch(cursor, 'material_pedagogico', material_batch)
+                    upsert_batch(cursor, 'ambiente_escolar', ambiente_batch)
+                    
+                    conn.commit()
                     
                     escola_batch.clear(); alimentacao_batch.clear(); bem_estar_batch.clear()
                     saude_batch.clear(); material_batch.clear(); ambiente_batch.clear()
-                    print(f"[{count}] Escolas inseridas via API REST nativa...")
+                    print(f"[{count}] Escolas inseridas no PostgreSQL via psycopg2...")
                     
                 if limit and count >= limit:
                     break
                     
         if len(escola_batch) > 0:
-            upsert_supabase('escola', escola_batch)
-            upsert_supabase('infraestrutura_alimentacao', alimentacao_batch)
-            upsert_supabase('infraestrutura_bem_estar', bem_estar_batch)
-            upsert_supabase('profissionais_saude', saude_batch)
-            upsert_supabase('material_pedagogico', material_batch)
-            upsert_supabase('ambiente_escolar', ambiente_batch)
-            print(f"[{count}] Escolas inseridas via API REST nativa...")
+            upsert_batch(cursor, 'escola', escola_batch)
+            upsert_batch(cursor, 'infraestrutura_alimentacao', alimentacao_batch)
+            upsert_batch(cursor, 'infraestrutura_bem_estar', bem_estar_batch)
+            upsert_batch(cursor, 'profissionais_saude', saude_batch)
+            upsert_batch(cursor, 'material_pedagogico', material_batch)
+            upsert_batch(cursor, 'ambiente_escolar', ambiente_batch)
+            conn.commit()
+            print(f"[{count}] Escolas inseridas no PostgreSQL via psycopg2...")
             
     except FileNotFoundError:
         print(f"Erro: O arquivo {csv_path} não foi encontrado. Verifique se a pasta INEP existe.")
         return
+    finally:
+        cursor.close()
+        conn.close()
 
     print("Carga finalizada com sucesso! O banco de dados agora tem dados reais.")
 
 if __name__ == "__main__":
-    # Expandindo o limite para 15000 para garantir que o script consiga varrer até o final do CSV (Sudeste e Sul)
     run_etl(limit=15000)

@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.106.1",
     "@types/mapbox-gl": "^3.4.1",
     "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
@@ -17,6 +16,7 @@
     "lucide-react": "^1.16.0",
     "mapbox-gl": "^3.24.0",
     "next": "16.2.6",
+    "pg": "^8.21.0",
     "react": "19.2.4",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.4",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
