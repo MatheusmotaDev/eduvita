@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/shared/lib/supabase";
 import { Loader2, FileCheck, XCircle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/shared/ui/Badge";
 
@@ -16,25 +15,26 @@ export function ComplianceClient() {
 
   useEffect(() => {
     async function fetchCompliance() {
-      // Usando count nativo do Supabase para otimizar a performance
-      const { count: total } = await supabase
-        .from('escola')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: compliant } = await supabase
-        .from('infraestrutura_bem_estar')
-        .select('*', { count: 'exact', head: true })
-        .eq('in_banheiro_pne', true);
-
-      if (total && compliant !== null) {
-        setData({
-          total,
-          compliant,
-          nonCompliant: total - compliant,
-          percentage: Number(((compliant / total) * 100).toFixed(1))
-        });
+      try {
+        const res = await fetch('/api/schools/metrics');
+        if (res.ok) {
+          const metrics = await res.json();
+          const total = metrics.total;
+          const nonCompliant = metrics.noAcessCount;
+          const compliant = total - nonCompliant;
+          
+          setData({
+            total,
+            compliant,
+            nonCompliant,
+            percentage: Number(((compliant / total) * 100).toFixed(1))
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar métricas de conformidade:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     
     fetchCompliance();
