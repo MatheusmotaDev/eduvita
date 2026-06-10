@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import pool from '@/shared/lib/db';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // As the schema is highly normalized in PostgreSQL, we do a join
     const result = await pool.query(`
