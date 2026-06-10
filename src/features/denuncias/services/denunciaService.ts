@@ -30,13 +30,13 @@ export async function createDenuncia(denuncia: Partial<Denuncia>) {
   return res.json();
 }
 
-export async function updateDenunciaStatus(id: string, status: Denuncia['status']) {
+export async function updateDenuncia(id: string, descricao: string) {
   const res = await fetch(`${getBaseUrl()}/api/denuncias/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ descricao }),
   });
-  if (!res.ok) throw new Error('Falha ao atualizar status');
+  if (!res.ok) throw new Error('Falha ao atualizar denúncia');
   return res.json();
 }
 
